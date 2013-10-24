@@ -12,8 +12,11 @@ Example usage - creating a user:
 
     var client = new ParseClient.Client();
 	
+	// If this variable is not passed in, it will be defaulted to UtcNow
+	var lastSyncedDate = DateTime.UtcNow;
+	
 	// This newUserObjectId variable needs to be stored somewhere to send future updates
-	var newUserObjectId = client.PostUserData("some encrypted data");
+	var newUserObjectId = client.PostUserData("some encrypted data", lastSyncedDate);
 
 Example usage - updating a user:
 

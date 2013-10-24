@@ -32,14 +32,18 @@ namespace ParseClient
             _baseUrl = "https://api.parse.com/1/classes/";
         }
 
-        public string PostUserData(string encryptedData)
+        public string PostUserData(string encryptedData, DateTime? lastSyncedDate = null)
         {
-            return Post(_userDataClassName, encryptedData);
+            lastSyncedDate = DefaultLastSyncedDate(lastSyncedDate);
+
+            return Post(_userDataClassName, encryptedData, lastSyncedDate);
         }
 
-        public void PutUserData(string objectId, string encryptedData)
+        public void PutUserData(string objectId, string encryptedData, DateTime? lastSyncedDate = null)
         {
-            Put(_userDataClassName, objectId, encryptedData);
+            lastSyncedDate = DefaultLastSyncedDate(lastSyncedDate);
+
+            Put(_userDataClassName, objectId, encryptedData, lastSyncedDate);
         }
 
         public DeserializableDto GetUserData(string objectId)
@@ -47,14 +51,18 @@ namespace ParseClient
             return Get(_userDataClassName, objectId);
         }
 
-        public string PostGameConfigurationData(string encryptedData)
+        public string PostGameConfigurationData(string encryptedData, DateTime? lastSyncedDate = null)
         {
-            return Post(_gameConfigurationClassName, encryptedData);
+            lastSyncedDate = DefaultLastSyncedDate(lastSyncedDate);
+
+            return Post(_gameConfigurationClassName, encryptedData, lastSyncedDate);
         }
 
-        public void PutGameConfigurationData(string objectId, string encryptedData)
+        public void PutGameConfigurationData(string objectId, string encryptedData, DateTime? lastSyncedDate = null)
         {
-            Put(_gameConfigurationClassName, objectId, encryptedData);
+            lastSyncedDate = DefaultLastSyncedDate(lastSyncedDate);
+
+            Put(_gameConfigurationClassName, objectId, encryptedData, lastSyncedDate);
         }
 
         public DeserializableDto GetGameConfigurationData(string objectId)
@@ -74,9 +82,11 @@ namespace ParseClient
             return JsonConvert.DeserializeObject<DeserializableDto>(content);
         }
 
-        public string Post(string className, string data)
+        public string Post(string className, string data, DateTime? lastSyncedDate = null)
         {
-            var entity = new SerializableDto { encryptedData = data };
+            lastSyncedDate = DefaultLastSyncedDate(lastSyncedDate);
+
+            var entity = new SerializableDto { encryptedData = data, lastSyncedDate = lastSyncedDate.Value };
             var url = string.Format("{0}{1}", _baseUrl, className);
 
             var result = _httpClient.PostAsync(url, SetupJson(entity)).Result;
@@ -98,9 +108,11 @@ namespace ParseClient
             return pieces.Last();
         }
 
-        public void Put(string className, string objectId, string data)
+        public void Put(string className, string objectId, string data, DateTime? lastSyncedDate = null)
         {
-            var entity = new SerializableDto { encryptedData = data };
+            lastSyncedDate = DefaultLastSyncedDate(lastSyncedDate);
+
+            var entity = new SerializableDto { encryptedData = data, lastSyncedDate = lastSyncedDate.Value };
             var url = string.Format("{0}{1}/{2}", _baseUrl, className, objectId);
 
             var result = _httpClient.PutAsync(url, SetupJson(entity)).Result;
@@ -111,6 +123,13 @@ namespace ParseClient
         {
             var inputJson = JsonConvert.SerializeObject(dto);
             return new StringContent(inputJson, Encoding.UTF8, "application/json");
+        }
+
+        private DateTime? DefaultLastSyncedDate(DateTime? lastSyncedDate)
+        {
+            if (null == lastSyncedDate)
+                lastSyncedDate = DateTime.UtcNow;
+            return lastSyncedDate;
         }
     }
 }
